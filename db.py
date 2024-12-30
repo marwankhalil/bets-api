@@ -1,12 +1,10 @@
 import os
-from dotenv import load_dotenv
 import psycopg2
 
-load_dotenv()
 
 class db_connection():
     def __init__(self):
-        conn_str = os.getenv("BETS_DB_CONN_STR")
+        conn_str = os.environ.get("BETS_DB_CONN_STR")
         self.conn = psycopg2.connect(conn_str)
     def get_cursor(self):
         return self.conn.cursor()
