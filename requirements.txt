@@ -3,3 +3,4 @@ Gunicorn
 psycopg2
 flask_cors
 python-dateutil
+requests
