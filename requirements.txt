@@ -1,6 +1,6 @@
 Flask
 Gunicorn
-psycopg2
-flask_cors
-python-dateutil
-requests
+# psycopg2
+# flask_cors
+# python-dateutil
+# requests
