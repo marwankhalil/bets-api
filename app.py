@@ -22,6 +22,10 @@ from api.bets_controller import (
     place_bet_controller,
     get_user_bets_controller
 )
+from api.users_controller import (
+    login_controller,
+    set_username_controller
+)
 
 @app.route('/matches', methods=["GET"])
 def get_matches():
@@ -93,4 +97,31 @@ def update_matches_to_in_progress():
 @app.route('/internal/complete-matches', methods=["POST"])
 def complete_matches():
     response, status_code = complete_matches_controller()
+    return jsonify(response), status_code
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    print("Request received: /api/login request: ", request.get_json())
+    data = request.get_json()
+    firebase_uid = data.get('firebase_uid')
+    email = data.get('email')
+    id_token = data.get('id_token')
+
+    if not firebase_uid or not id_token:
+        return jsonify({"error": "Missing firebase_uid or id_token"}), 400
+
+    response, status_code = login_controller(firebase_uid, email, id_token)
+    return jsonify(response), status_code
+
+@app.route('/api/set_username', methods=['POST'])
+def set_username():
+    print("Request received: /api/set_username request: ", request.get_json())
+    data = request.get_json()
+    user_id = data.get('user_id')
+    username = data.get('username')
+
+    if not user_id or not username:
+        return jsonify({"error": "Missing user_id or username"}), 400
+
+    response, status_code = set_username_controller(user_id, username)
     return jsonify(response), status_code

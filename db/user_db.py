@@ -9,7 +9,7 @@ def get_user_by_id_from_db(user_id):
     try:
         with db.get_cursor() as cursor:
             cursor.execute("""
-                SELECT user_id, user_name, balance FROM users WHERE user_id = %s;
+                SELECT user_id, username, balance FROM users WHERE user_id = %s;
             """, (user_id,))
             return cursor.fetchone()
     except Exception as e:
@@ -27,4 +27,50 @@ def update_user_balance_in_db(user_id, amount):
             db.commit()
     except Exception as e:
         print(f"Error updating user balance for {user_id}: {e}")
+
+def get_user_by_firebase_uid(firebase_uid):
+    try:
+        with db.get_cursor() as cursor:
+            cursor.execute("""
+                SELECT user_id, username, balance FROM users WHERE firebase_uid = %s;
+            """, (firebase_uid,))
+            row = cursor.fetchone()
+            if row:
+                return {"user_id": row["user_id"], "username": row["username"], "balance": row["balance"]}
+            return None
+    except Exception as e:
+        print(f"DB error (get_user_by_firebase_uid): {e}")
+        return None
+
+def create_user(firebase_uid, email):
+    try:
+        with db.get_cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO users (user_id, firebase_uid, email, balance)
+                VALUES (uuid_generate_v4(), %s, %s, 1000)
+                RETURNING user_id;
+            """, (firebase_uid, email))
+            user_id = cursor.fetchone()["user_id"]
+            db.commit()
+            return user_id
+    except Exception as e:
+        print(f"DB error (create_user): {e}")
+        return None
+
+def username_exists(username):
+    try:
+        with db.get_cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) AS count FROM users WHERE username = %s;", (username,))
+            return cursor.fetchone()["count"] > 0
+    except Exception as e:
+        print(f"DB error (username_exists): {e}")
+        return False
+
+def update_username(user_id, username):
+    try:
+        with db.get_cursor() as cursor:
+            cursor.execute("UPDATE users SET username = %s WHERE user_id = %s;", (username, user_id))
+            db.commit()
+    except Exception as e:
+        print(f"DB error (update_username): {e}")
 
