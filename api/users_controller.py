@@ -3,8 +3,8 @@ from db.user_db import (
     get_user_by_firebase_uid, 
     create_user,
     get_user_by_id_from_db,
-    update_username,
-    username_exists
+    username_exists,
+    update_username_in_db
 )
 
 def format_user_response(user_id: str, username: Optional[str], balance: float = 0) -> Dict:
@@ -22,6 +22,7 @@ def format_user_response(user_id: str, username: Optional[str], balance: float =
     return {
         "user_id": str(user_id),
         "username": username,
+        "needs_username": username is None,
         "balance": balance
     }
 
@@ -59,7 +60,7 @@ def handle_new_user(firebase_uid: str, email: str) -> Tuple[Dict, int]:
     return format_user_response(
         user_id=new_user_id,
         username=None,
-        balance=1000
+        balance=0
     ), 201
 
 def login_controller(firebase_uid: str, email: str, id_token: str) -> Tuple[Dict, int]:
@@ -88,15 +89,38 @@ def login_controller(firebase_uid: str, email: str, id_token: str) -> Tuple[Dict
         return {"error": "Internal server error"}, 500
 
 def set_username_controller(user_id: str, username: str) -> Tuple[Dict, int]:
+    """
+    Handle setting a user's username.
+    
+    Args:
+        user_id: The user's unique identifier
+        username: The new username to set
+    
+    Returns:
+        Tuple of (response dict, status code)
+    """
     try:
-        user = get_user_by_id_from_db(user_id)
-        if not user or user == "user_not_found":
-            return {"error": "User not found"}, 404
+        # Validate username
+        if not username or not isinstance(username, str) or len(username.strip()) == 0:
+            return {"error": "Invalid username"}, 400
         if username_exists(username):
-            return {"error": "Username already taken"}, 409
-        update_username(user_id, username)
-        return {"message": "Username updated successfully"}, 200
+            return {"error": "Username already exists"}, 400
+        # Check if user exists
+        user = get_user_by_id_from_db(user_id)
+        if not user:
+            return {"error": "User not found"}, 404
+            
+        # Update username
+        if update_username_in_db(user_id, username):
+            return format_user_response(
+                user_id=user_id,
+                username=username,
+                balance=user.get("balance", 0)
+            ), 200
+        else:
+            return {"error": "Failed to update username"}, 500
+            
     except Exception as e:
-        print(f"Error setting username: {e}")
+        print(f"Failed to set username: {e}")
         return {"error": "Internal server error"}, 500
 

@@ -24,7 +24,7 @@ def update_user_balance_in_db(user_id, amount):
                 SET balance = balance + %s
                 WHERE user_id = %s;
             """, (amount, user_id))
-            db.commit()
+            
     except Exception as e:
         print(f"Error updating user balance for {user_id}: {e}")
 
@@ -51,7 +51,7 @@ def create_user(firebase_uid, email):
                 RETURNING user_id;
             """, (firebase_uid, email))
             user_id = cursor.fetchone()["user_id"]
-            db.commit()
+            
             return user_id
     except Exception as e:
         print(f"DB error (create_user): {e}")
@@ -66,11 +66,26 @@ def username_exists(username):
         print(f"DB error (username_exists): {e}")
         return False
 
-def update_username(user_id, username):
+def update_username_in_db(user_id: str, username: str) -> bool:
+    """
+    Update a user's username in the database.
+    
+    Args:
+        user_id: The user's unique identifier
+        username: The new username to set
+        
+    Returns:
+        bool: True if update was successful, False otherwise
+    """
     try:
         with db.get_cursor() as cursor:
-            cursor.execute("UPDATE users SET username = %s WHERE user_id = %s;", (username, user_id))
-            db.commit()
+            cursor.execute("""
+                UPDATE users
+                SET username = %s
+                WHERE user_id = %s;
+            """, (username, user_id))
+            return cursor.rowcount > 0
     except Exception as e:
-        print(f"DB error (update_username): {e}")
+        print(f"Error updating username for user {user_id}: {e}")
+        return False
 

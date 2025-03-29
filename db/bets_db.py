@@ -21,7 +21,7 @@ def place_bet_in_db(user_id, match_id, bet_type, bet_amount, odds):
                 UPDATE users SET balance = balance - %s WHERE user_id = %s;
             """, (bet_amount, user_id))
 
-            db.commit()  # Commit the transaction
+              # Commit the transaction
             return {"bet_id": bet_id}
     except Exception as e:
         print(f"Error placing bet: {e}")
@@ -94,7 +94,7 @@ def process_bets_for_match_in_db(match_id):
                     UPDATE bets SET result = %s WHERE bet_id = %s;
                 """, (bet_result, bet_id))
 
-            db.commit()
+            
             return "success"
     except Exception as e:
         print(f"Error processing bets for match {match_id}: {e}")
@@ -113,7 +113,7 @@ def update_bets_for_match_in_db(match_id, winning_bet_type):
                 RETURNING bet_id, result, user_id, bet_amount, odds;
             """, (winning_bet_type, match_id))
             updated_bets = cursor.fetchall()
-            db.commit()
+            
             return updated_bets
     except Exception as e:
         print(f"Error updating bets for match {match_id}: {e}")

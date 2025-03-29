@@ -61,7 +61,7 @@ def add_match_to_db(team_1, team_2, match_date, match_status="upcoming"):
             """, (team_1, team_2, match_date, match_status))
 
             match_id = cursor.fetchone()["match_id"]  # Uses dict instead of tuple
-            db.commit()  # Explicitly commit the transaction
+              # Explicitly commit the transaction
             return match_id
     except Exception as e:
         print(f"Error adding match: {e}")
@@ -88,7 +88,7 @@ def update_match_status_in_db(match_id, new_status, result=None):
                 WHERE match_id = %s;
             """, (new_status, result, match_id))
 
-            db.commit()  # Commit the transaction
+              # Commit the transaction
             return "success"
     except Exception as e:
         raise e
@@ -108,7 +108,7 @@ def add_match_or_update_odds_in_db(team_1, team_2, match_date, odds_team_1, odds
                 WHERE matches.match_status = 'upcoming';
             """, (team_1, team_2, match_date, odds_team_1, odds_draw, odds_team_2))
 
-            db.commit()
+            
             return True
     except Exception as e:
         print(f"Error adding match or updating odds: {e}")
@@ -127,7 +127,7 @@ def update_matches_to_in_progress_in_db():
             """)
             updated = cursor.fetchall()
 
-        db.commit()
+        
         updated_ids = [row["match_id"] for row in updated]
         print(updated_ids)
         return updated_ids
