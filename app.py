@@ -34,7 +34,8 @@ def get_matches():
 
 @app.route('/upcoming_matches', methods=["GET"])
 def get_upcoming_matches():
-    response, status_code = get_upcoming_matches_controller()
+    user_id = request.args.get('user_id')
+    response, status_code = get_upcoming_matches_controller(user_id)
     return jsonify(response), status_code
 
 

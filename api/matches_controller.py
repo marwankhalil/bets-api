@@ -13,7 +13,10 @@ from db.matches_db import (
     update_matches_to_in_progress_in_db,
     get_in_progress_matches_older_than_2_hours_from_db
 )
-from db.bets_db import update_bets_for_match_in_db
+from db.bets_db import (
+    update_bets_for_match_in_db,
+    get_user_bets_for_matches
+)
 from db.user_db import update_user_balance_in_db
 from external.footbal_api import get_match_result_from_api
 from external.odds_api import fetch_epl_odds
@@ -22,8 +25,31 @@ def get_matches_controller():
     matches = get_matches_from_db()
     return {"matches": matches}, 200
 
-def get_upcoming_matches_controller():
+def get_upcoming_matches_controller(user_id=None):
+    """
+    Get upcoming matches with optional user bet information.
+    
+    Args:
+        user_id: Optional user ID to check if they've placed bets on the matches
+        
+    Returns:
+        List of upcoming matches with user bet information if user_id is provided
+    """
     matches = get_upcoming_matches_from_db()
+    
+    # If user_id is provided, check if they have bets on these matches
+    if user_id:
+        # Extract match_ids
+        match_ids = [match["match_id"] for match in matches]
+        
+        # Get user's bets for these matches
+        bet_map = get_user_bets_for_matches(user_id, match_ids)
+        
+        # Add bet information to each match
+        for match in matches:
+            match_id = match["match_id"]
+            match["user_bet"] = bet_map.get(match_id)
+    
     return {"matches": matches}, 200
 
 def get_match_by_id_controller(match_id):
