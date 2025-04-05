@@ -24,13 +24,16 @@ def find_match_result(all_results, home_team, away_team, match_date):
         str: 'team_1' if home team won, 'team_2' if away team won, 'draw' if it was a draw
     """
     # Convert match_date to string format matching the dummy data
-    match_date_str = match_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+    match_date_str = match_date.strftime("%Y-%m-%d")
     
     # Find the matching game
     for game in all_results:
+        # Extract just the date part from commence_time
+        game_date = game["commence_time"].split("T")[0]
+        
         if (game["home_team"] == home_team and 
             game["away_team"] == away_team and 
-            game["commence_time"] == match_date_str and 
+            game_date == match_date_str and 
             game["completed"] and 
             game["scores"] is not None):
             
