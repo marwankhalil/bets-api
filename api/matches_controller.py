@@ -19,7 +19,7 @@ from db.bets_db import (
 )
 from db.user_db import update_user_balance_in_db
 from external.footbal_api import get_match_result_from_api
-from external.odds_api import fetch_epl_odds
+from external.odds_api import fetch_epl_odds, fetch_epl_results, find_match_result
 
 def get_matches_controller():
     matches = get_matches_from_db()
@@ -123,18 +123,17 @@ def update_matches_to_in_progress_controller():
 def complete_matches_controller():
     # get in-progress matches older than 2 hours
     in_progress_older_than_2_hours_matches = get_in_progress_matches_older_than_2_hours_from_db()
+    # get results from the-odds-api
+    all_results = fetch_epl_results()
     for match in in_progress_older_than_2_hours_matches:
-        result = get_match_result_from_api(match["match_id"], match["team_1"], match["team_2"], match["match_date"])
+        result = find_match_result(all_results,  match["team_1"], match["team_2"], match["match_date"])
+        if result is None:
+            print(f"No result found for match {match['match_id']}")
+            continue
         update_match_status_in_db(match["match_id"], "completed", result)
-        winning_bet_type = {
-            "team_1_win": "team_1",
-            "team_2_win": "team_2",
-            "draw": "draw"
-        }[result]
-        updated_bets = update_bets_for_match_in_db(match["match_id"], winning_bet_type)
+        updated_bets = update_bets_for_match_in_db(match["match_id"], result)
         for bet in updated_bets:
             if bet["result"] != "won":
                 continue
             update_user_balance_in_db(bet["user_id"], bet["bet_amount"] * bet["odds"])
     return {"message": "Matches completed", "updated_match_ids": in_progress_older_than_2_hours_matches}, 200
-

@@ -161,3 +161,46 @@ def update_bets_for_match_in_db(match_id, winning_bet_type):
     except Exception as e:
         print(f"Error updating bets for match {match_id}: {e}")
         return []
+
+def get_user_bets_for_matches(user_id, match_ids):
+     """
+     Check if a user has placed bets on specific matches.
+     
+     Args:
+         user_id: The user's ID
+         match_ids: List of match IDs to check
+         
+     Returns:
+         Dict mapping match_id to bet information or None if no bet
+     """
+     if not match_ids:
+         return {}
+         
+     try:
+         with db.get_cursor() as cursor:
+             placeholders = ','.join(['%s'] * len(match_ids))
+             query = f"""
+                 SELECT match_id, bet_type, bet_amount, odds, result
+                 FROM bets
+                 WHERE user_id = %s AND match_id IN ({placeholders});
+             """
+             params = [user_id] + match_ids
+             cursor.execute(query, params)
+             
+             bets = cursor.fetchall()
+             
+             # Create a map of match_id to bet details
+             bet_map = {}
+             for bet in bets:
+                 match_id = bet['match_id']
+                 bet_map[match_id] = {
+                     'bet_type': bet['bet_type'],
+                     'bet_amount': bet['bet_amount'],
+                     'odds': bet['odds'],
+                     'result': bet['result']
+                 }
+                 
+             return bet_map
+     except Exception as e:
+         print(f"Error fetching user bets for matches: {e}")
+         return {}
