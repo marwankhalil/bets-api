@@ -89,3 +89,29 @@ def update_username_in_db(user_id: str, username: str) -> bool:
         print(f"Error updating username for user {user_id}: {e}")
         return False
 
+def get_all_users_with_balances_from_db():
+    """
+    Get all users with their current balances.
+    
+    Returns:
+        list: List of dictionaries containing user_id, username, and balance
+    """
+    try:
+        with db.get_cursor() as cursor:
+            cursor.execute("""
+                SELECT user_id, username, balance 
+                FROM users 
+                ORDER BY balance DESC
+            """)
+            users = []
+            for row in cursor.fetchall():
+                users.append({
+                    "user_id": row["user_id"],
+                    "username": row["username"],
+                    "balance": float(row["balance"])
+                })
+            return users
+    except Exception as e:
+        print(f"Error getting all users: {e}")
+        return []
+

@@ -4,7 +4,8 @@ from db.user_db import (
     create_user,
     get_user_by_id_from_db,
     username_exists,
-    update_username_in_db
+    update_username_in_db,
+    get_all_users_with_balances_from_db
 )
 
 def format_user_response(user_id: str, username: Optional[str], balance: float = 0) -> Dict:
@@ -123,4 +124,14 @@ def set_username_controller(user_id: str, username: str) -> Tuple[Dict, int]:
     except Exception as e:
         print(f"Failed to set username: {e}")
         return {"error": "Internal server error"}, 500
+
+def get_all_users_controller():
+    """
+    Get all users with their current balances for the leaderboard.
+    
+    Returns:
+        tuple: (response dict, status code)
+    """
+    users = get_all_users_with_balances_from_db()
+    return {"users": users}, 200
 

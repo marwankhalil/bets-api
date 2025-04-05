@@ -24,7 +24,8 @@ from api.bets_controller import (
 )
 from api.users_controller import (
     login_controller,
-    set_username_controller
+    set_username_controller,
+    get_all_users_controller
 )
 
 @app.route('/matches', methods=["GET"])
@@ -125,4 +126,15 @@ def set_username():
         return jsonify({"error": "Missing user_id or username"}), 400
 
     response, status_code = set_username_controller(user_id, username)
+    return jsonify(response), status_code
+
+@app.route('/users/leaderboard', methods=["GET"])
+def get_leaderboard():
+    """
+    Get all users with their current balances for the leaderboard.
+    
+    Returns:
+        JSON response with list of users and their balances, sorted by balance in descending order
+    """
+    response, status_code = get_all_users_controller()
     return jsonify(response), status_code
