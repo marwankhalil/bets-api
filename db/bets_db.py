@@ -30,13 +30,15 @@ def place_bet_in_db(user_id, match_id, bet_type, bet_amount, odds):
 def get_user_bets_from_db(user_id):
     try:
         with db.get_cursor() as cursor:
-            # Fetch user's bets along with match details
+            # Fetch user's bets along with match details, ordered by match date descending
             cursor.execute("""
                 SELECT b.bet_id, b.match_id, m.team_1, m.team_2, m.match_date, 
                        b.bet_type, b.bet_amount, b.odds, b.result
                 FROM bets b
                 JOIN matches m ON b.match_id = m.match_id
-                WHERE b.user_id = %s;
+                WHERE b.user_id = %s
+                ORDER BY m.match_date DESC
+                LIMIT 10;
             """, (user_id,))
             
             bets = cursor.fetchall()
