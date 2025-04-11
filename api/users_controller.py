@@ -7,6 +7,7 @@ from db.user_db import (
     update_username_in_db,
     get_all_users_with_balances_from_db
 )
+from db.bets_db import get_user_bets_from_db
 
 def format_user_response(user_id: str, username: Optional[str], balance: float = 0) -> Dict:
     """
@@ -134,4 +135,40 @@ def get_all_users_controller():
     """
     users = get_all_users_with_balances_from_db()
     return {"users": users}, 200
+
+def get_user_profile_controller(user_id: str) -> Tuple[Dict, int]:
+    """
+    Get a user's profile including their bets.
+    
+    Args:
+        user_id: The user's unique identifier
+        
+    Returns:
+        Tuple of (response dict, status code)
+    """
+    try:
+        # Get user information
+        user = get_user_by_id_from_db(user_id)
+        if not user:
+            return {"error": "User not found"}, 404
+            
+        # Get user's bets
+        bets = get_user_bets_from_db(user_id)
+        if bets == "error":
+            return {"error": "Failed to fetch user bets"}, 500
+            
+        # Format response
+        response = {
+            "user": {
+                "user_id": str(user["user_id"]),
+                "username": user["username"],
+                "balance": float(user["balance"])
+            },
+            "bets": bets
+        }
+        
+        return response, 200
+    except Exception as e:
+        print(f"Error getting user profile: {e}")
+        return {"error": "Internal server error"}, 500
 

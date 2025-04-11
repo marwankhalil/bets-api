@@ -25,7 +25,8 @@ from api.bets_controller import (
 from api.users_controller import (
     login_controller,
     set_username_controller,
-    get_all_users_controller
+    get_all_users_controller,
+    get_user_profile_controller
 )
 
 @app.route('/matches', methods=["GET"])
@@ -137,4 +138,15 @@ def get_leaderboard():
         JSON response with list of users and their balances, sorted by balance in descending order
     """
     response, status_code = get_all_users_controller()
+    return jsonify(response), status_code
+
+@app.route('/users/<user_id>/profile', methods=["GET"])
+def get_user_profile(user_id):
+    """
+    Get a user's profile including their bets.
+    
+    Returns:
+        JSON response with user information and their bets
+    """
+    response, status_code = get_user_profile_controller(user_id)
     return jsonify(response), status_code
