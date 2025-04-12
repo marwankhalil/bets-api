@@ -7,7 +7,7 @@ def fetch_epl_odds():
   return response.json()
 
 def fetch_epl_results():
-  url = f"https://api.the-odds-api.com/v4/sports/soccer_epl/scores/?apiKey={os.getenv('ODDS_API_KEY')}&daysFrom=3&dateFormat=iso"
+  url = f"https://api.the-odds-api.com/v4/sports/soccer_epl/scores/?apiKey={os.getenv('ODDS_API_KEY')}&daysFrom=1&dateFormat=iso"
   response = requests.get(url)
   return response.json()
 
