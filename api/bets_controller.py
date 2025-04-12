@@ -17,8 +17,8 @@ def place_bet_controller(user_id, match_id, bet_type, bet_amount, odds):
     match = get_match_by_id_from_db(match_id)
     if not match:
         return {"error": "match_not_found"}, 404
-    if match["match_status"] == "completed":
-        return {"error": "match_completed"}, 400
+    if match["match_status"] == "completed" or match["match_status"] == "in_progress":
+        return {"error": "match_completed_or_in_progress"}, 400
 
     # Check if user has enough balance
     user = get_user_by_id_from_db(user_id)
