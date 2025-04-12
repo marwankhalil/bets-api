@@ -9,10 +9,10 @@ def place_bet_in_db(user_id, match_id, bet_type, bet_amount, odds):
         with db.get_cursor() as cursor:
             # Insert bet into bets table
             cursor.execute("""
-                INSERT INTO bets (bet_id, user_id, match_id, bet_type, bet_amount, odds, result)
-                VALUES (uuid_generate_v4(), %s, %s, %s, %s, %s, 'pending')
+                INSERT INTO bets (bet_id, user_id, match_id, bet_type, bet_amount, odds, result, bet_on)
+                VALUES (uuid_generate_v4(), %s, %s, %s, %s, %s, 'pending', %s)
                 RETURNING bet_id;
-            """, (user_id, match_id, bet_type, bet_amount, odds))
+            """, (user_id, match_id, bet_type, bet_amount, odds, bet_type))
 
             bet_id = cursor.fetchone()["bet_id"]
 
