@@ -37,8 +37,7 @@ def get_user_bets_from_db(user_id):
                 FROM bets b
                 JOIN matches m ON b.match_id = m.match_id
                 WHERE b.user_id = %s
-                ORDER BY m.match_date DESC
-                LIMIT 10;
+                ORDER BY m.match_date DESC;
             """, (user_id,))
             
             bets = cursor.fetchall()
