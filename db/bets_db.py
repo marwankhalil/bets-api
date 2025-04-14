@@ -5,71 +5,42 @@ import json
 # Initialize a global DB connection object
 db = DBConnection()
 
-def place_bet_in_db(user_id, match_id, bet_type, bet_amount, odds,
-                    advanced_bet_type=None, bet_parameters=None):
+def place_bet_in_db(user_id, match_id, bet_amount, odds,
+                    advanced_bet_type, bet_parameters):
     """
     Places a bet in the database.
-    If advanced_bet_type is provided, uses new system.
-    Otherwise uses old system with bet_type.
     """
     try:
         with db.get_cursor() as cursor:
             cursor.execute("BEGIN")
             try:
-                if advanced_bet_type:
-                    cursor.execute("""
-                        INSERT INTO bets (
-                            bet_id,
-                            user_id,
-                            match_id,
-                            bet_type,
-                            advanced_bet_type,
-                            bet_parameters,
-                            bet_amount,
-                            odds,
-                            result
-                        )
-                        VALUES (
-                            uuid_generate_v4(),
-                            %s, %s, NULL,
-                            %s, %s,
-                            %s, %s,
-                            'pending'
-                        )
-                        RETURNING bet_id;
-                    """, (
+                cursor.execute("""
+                    INSERT INTO bets (
+                        bet_id,
                         user_id,
                         match_id,
                         advanced_bet_type,
-                        json.dumps(bet_parameters),
+                        bet_parameters,
                         bet_amount,
-                        odds
-                    ))
-                else:
-                    cursor.execute("""
-                        INSERT INTO bets (
-                            bet_id,
-                            user_id,
-                            match_id,
-                            bet_type,
-                            bet_amount,
-                            odds,
-                            result
-                        )
-                        VALUES (
-                            uuid_generate_v4(),
-                            %s, %s, %s,
-                            %s, %s,
-                            'pending'
-                        )
-                        RETURNING bet_id;
-                    """, (
-                        user_id,
-                        match_id,
-                        bet_type,
-                        bet_amount,
-                        odds
-                    ))
+                        odds,
+                        result
+                    )
+                    VALUES (
+                        uuid_generate_v4(),
+                        %s, %s,
+                        %s, %s,
+                        %s, %s,
+                        'pending'
+                    )
+                    RETURNING bet_id;
+                """, (
+                    user_id,
+                    match_id,
+                    advanced_bet_type,
+                    json.dumps(bet_parameters),
+                    bet_amount,
+                    odds
+                ))
 
                 bet_id = cursor.fetchone()["bet_id"]
 
@@ -96,7 +67,7 @@ def get_user_bets_from_db(user_id):
             # Fetch user's bets along with match details, ordered by match date descending
             cursor.execute("""
                 SELECT b.bet_id, b.match_id, m.team_1, m.team_2, m.match_date, 
-                       b.bet_type, b.bet_amount, b.odds, b.result, b.advanced_bet_type, b.bet_parameters
+                       b.bet_amount, b.odds, b.result, b.advanced_bet_type, b.bet_parameters
                 FROM bets b
                 JOIN matches m ON b.match_id = m.match_id
                 WHERE b.user_id = %s
@@ -127,7 +98,7 @@ def get_user_bets_for_matches(user_id, match_ids):
         with db.get_cursor() as cursor:
             placeholders = ','.join(['%s'] * len(match_ids))
             query = f"""
-                SELECT match_id, bet_type, bet_amount, odds, result, advanced_bet_type, bet_parameters
+                SELECT match_id, bet_amount, odds, result, advanced_bet_type, bet_parameters
                 FROM bets
                 WHERE user_id = %s AND match_id IN ({placeholders});
             """
@@ -141,7 +112,6 @@ def get_user_bets_for_matches(user_id, match_ids):
             for bet in bets:
                 match_id = bet['match_id']
                 bet_map[match_id] = {
-                    'bet_type': bet['bet_type'],
                     'bet_amount': bet['bet_amount'],
                     'odds': bet['odds'],
                     'result': bet['result'],
@@ -246,7 +216,7 @@ def get_user_bets_for_matches(user_id, match_ids):
          with db.get_cursor() as cursor:
              placeholders = ','.join(['%s'] * len(match_ids))
              query = f"""
-                 SELECT match_id, bet_type, bet_amount, odds, result, advanced_bet_type, bet_parameters
+                 SELECT match_id, bet_amount, odds, result, advanced_bet_type, bet_parameters
                  FROM bets
                  WHERE user_id = %s AND match_id IN ({placeholders});
              """
@@ -260,7 +230,6 @@ def get_user_bets_for_matches(user_id, match_ids):
              for bet in bets:
                  match_id = bet['match_id']
                  bet_map[match_id] = {
-                     'bet_type': bet['bet_type'],
                      'bet_amount': bet['bet_amount'],
                      'odds': bet['odds'],
                      'result': bet['result'],

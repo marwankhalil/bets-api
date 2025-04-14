@@ -16,7 +16,7 @@ def place_bet_controller(data):
     Handles validation and processing for both old and new betting systems.
     """
     # Validate required fields
-    required_fields = ["user_id", "match_id", "bet_amount", "odds"]
+    required_fields = ["user_id", "match_id", "bet_amount", "odds", "advanced_bet_type", "bet_parameters"]
     missing_fields = [field for field in required_fields if field not in data]
     if missing_fields:
         return {"error": f"Missing required fields: {', '.join(missing_fields)}"}, 400
@@ -50,40 +50,18 @@ def place_bet_controller(data):
     if user["balance"] < bet_amount:
         return {"error": "Insufficient balance"}, 400
 
-    # Handle bet placement based on type
-    if "advanced_bet_type" in data:
-        # New system
-        if "bet_parameters" not in data:
-            return {"error": "bet_parameters required for advanced bet types"}, 400
+    if data["advanced_bet_type"] == "team_to_win":
+        if not data["bet_parameters"].get("team") in ["team_1", "team_2", "draw"]:
+            return {"error": "Invalid team selection for team_to_win bet"}, 400
 
-        if data["advanced_bet_type"] == "team_to_win":
-            if not data["bet_parameters"].get("team") in ["team_1", "team_2", "draw"]:
-                return {"error": "Invalid team selection for team_to_win bet"}, 400
-
-        result = place_bet_in_db(
-            user_id=data["user_id"],
-            match_id=data["match_id"],
-            bet_type=None,
-            bet_amount=bet_amount,
-            odds=odds,
-            advanced_bet_type=data["advanced_bet_type"],
-            bet_parameters=data["bet_parameters"]
-        )
-    else:
-        # Old system
-        if "bet_type" not in data:
-            return {"error": "bet_type required for standard bets"}, 400
-
-        if data["bet_type"] not in ["team_1", "team_2"]:
-            return {"error": "Invalid bet type"}, 400
-
-        result = place_bet_in_db(
-            user_id=data["user_id"],
-            match_id=data["match_id"],
-            bet_type=data["bet_type"],
-            bet_amount=bet_amount,
-            odds=odds
-        )
+    result = place_bet_in_db(
+        user_id=data["user_id"],
+        match_id=data["match_id"],
+        bet_amount=bet_amount,
+        odds=odds,
+        advanced_bet_type=data["advanced_bet_type"],
+        bet_parameters=data["bet_parameters"]
+    )
 
     if result == "error":
         return {"error": "Failed to place bet"}, 500
