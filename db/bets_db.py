@@ -241,3 +241,28 @@ def get_user_bets_for_matches(user_id, match_ids):
      except Exception as e:
          print(f"Error fetching user bets for matches: {e}")
          return {}
+     
+def get_match_bets_from_db(match_id):
+    try:
+        with db.get_cursor() as cursor:
+            cursor.execute("""
+                SELECT bet_id, user_id, bet_amount, odds, result, advanced_bet_type, bet_parameters FROM bets WHERE match_id = %s;
+            """, (match_id,))
+            match_bets = cursor.fetchall()
+            return match_bets if match_bets else []
+    except Exception as e:
+        print(f"Error getting match bets: {e}")
+        return []
+
+
+def update_bet_result_in_db(bet_id, result):
+    try:
+        with db.get_cursor() as cursor:
+            cursor.execute("""
+                UPDATE bets SET result = %s WHERE bet_id = %s;
+            """, (result, bet_id))
+    except Exception as e:
+        print(f"Error updating bet result: {e}")
+        return "error"
+
+

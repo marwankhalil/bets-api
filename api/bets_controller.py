@@ -1,12 +1,15 @@
 from db.bets_db import (
     place_bet_in_db,
+    get_match_bets_from_db,
+    update_bet_result_in_db,
     get_user_bets_from_db
 )
 from db.matches_db import (
-    get_match_by_id_from_db
+    get_match_by_id_from_db,
 )
 from db.user_db import (
-    get_user_by_id_from_db
+    get_user_by_id_from_db,
+    update_user_balance_in_db
 )
 
 
@@ -85,4 +88,26 @@ def get_user_bets_controller(user_id):
         return {"error": "Failed to fetch user bets"}, 500
     else:
         return {"bets": result}, 200
+
+def handle_bets_for_match(match_id):
+    match = get_match_by_id_from_db(match_id)
+    match_bets = get_match_bets_from_db(match_id)
+    for bet in match_bets:
+        won = False
+        if bet["advanced_bet_type"] == "team_to_win":
+            won = handle_team_to_win_bet(bet, match)
+        update_user_balance_in_db(bet["user_id"], bet["bet_amount"] * bet["odds"]) if won else None
+        update_bet_result_in_db(bet["bet_id"], "won" if won else "lost")
+
+def handle_team_to_win_bet(bet, match):
+    if bet["bet_parameters"]["team"] == "draw":
+        if match["result"] == "draw":
+            return True
+        else:
+            return False
+    else:
+        if bet["bet_parameters"]["team"] == match["result"]:
+            return True
+        else:
+            return False
 

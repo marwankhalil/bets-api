@@ -85,6 +85,7 @@ def update_matches_to_in_progress():
     response, status_code = update_matches_to_in_progress_controller()
     return jsonify(response), status_code
 
+# curl -X POST http://127.0.0.1:5000/internal/complete-matches
 @app.route('/internal/complete-matches', methods=["POST"])
 def complete_matches():
     response, status_code = complete_matches_controller()
