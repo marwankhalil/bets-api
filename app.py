@@ -65,21 +65,9 @@ def update_match_status(match_id):
 
 @app.route('/bets', methods=["POST"])
 def place_bet():
+    """Place a new bet"""
     data = request.get_json()
-
-    # Validate request payload
-    required_fields = ["user_id", "match_id", "bet_type", "bet_amount", "odds"]
-    if not all(field in data for field in required_fields):
-        return jsonify({"error": "Missing required fields"}), 400
-
-    # Call the controller function
-    response, status_code = place_bet_controller(
-        data["user_id"],
-        data["match_id"],
-        data["bet_type"],
-        data["bet_amount"],
-        data["odds"]
-    )
+    response, status_code = place_bet_controller(data)
     return jsonify(response), status_code
 
 @app.route('/bets/<user_id>', methods=["GET"])
